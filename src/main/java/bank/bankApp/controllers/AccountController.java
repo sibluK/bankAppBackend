@@ -4,22 +4,39 @@ import bank.bankApp.exceptions.AccountNotFoundException;
 import bank.bankApp.exceptions.UserNotFoundException;
 import bank.bankApp.models.Account;
 import bank.bankApp.models.User;
+import bank.bankApp.models.AccountTransaction;
 import bank.bankApp.repositories.IAccountRepository;
+import bank.bankApp.repositories.ITransactionRepository;
 import bank.bankApp.repositories.IUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@RequestMapping(path = "/accounts")
 public class AccountController {
 
     @Autowired
     private IAccountRepository accountRepository;
     @Autowired
     private IUserRepository userRepository;
+    @Autowired
+    private ITransactionRepository transactionRepository;
 
-    @GetMapping(path = "/accounts/user/{userId}")
+    @GetMapping
+    public ResponseEntity<?> getAccounts() {
+        try {
+            return ResponseEntity.ok().body(accountRepository.findAll());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to retrieve accounts");
+        }
+    }
+    @GetMapping(path = "/user/{userId}")
     public ResponseEntity<?> getUserAccounts(@PathVariable Long userId) {
         try {
             return ResponseEntity.ok().body(accountRepository.findAllByUserId(userId));
@@ -30,7 +47,7 @@ public class AccountController {
         }
     }
 
-    @GetMapping(path = "/accounts/{accountId}")
+    @GetMapping(path = "/{accountId}")
     public ResponseEntity<?> getAccountById(@PathVariable Long accountId) {
         try {
             Account account = accountRepository.findById(accountId)
@@ -43,7 +60,7 @@ public class AccountController {
         }
     }
 
-    @PostMapping(path = "/accounts/{userId}")
+    @PostMapping(path = "/{userId}")
     public ResponseEntity<?> addAccount(@RequestBody Account newAccount, @PathVariable Long userId) {
         try {
             User user = userRepository.findById(userId)
@@ -63,7 +80,7 @@ public class AccountController {
         }
     }
 
-    @PutMapping(path = "/accounts/{id}")
+    @PutMapping(path = "/{id}")
     public ResponseEntity<?> replaceAccountById(@RequestBody Account newAccount, @PathVariable Long id) {
         try {
             Account account = accountRepository.findById(id)
@@ -72,8 +89,6 @@ public class AccountController {
             account.setNumber(newAccount.getNumber());
             account.setType(newAccount.getType());
             account.setBalance(newAccount.getBalance());
-            account.setUser(newAccount.getUser());
-            account.setTransactions(newAccount.getTransactions());
             accountRepository.save(account);
             return ResponseEntity.ok().body("Account replaced!");
 
@@ -84,9 +99,16 @@ public class AccountController {
         }
     }
 
-    @DeleteMapping(path = "/accounts/{id}")
+    @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> deleteAccountById(@PathVariable Long id) {
         try {
+            Account account = accountRepository.findById(id)
+                    .orElseThrow(() -> new AccountNotFoundException(id));
+
+            List<AccountTransaction> transactions = account.getTransactions();
+            for (AccountTransaction transaction : transactions) {
+                transactionRepository.delete(transaction);
+            }
             accountRepository.deleteById(id);
             return ResponseEntity.ok().body("Account deleted!");
         } catch (Exception e) {
@@ -94,6 +116,4 @@ public class AccountController {
                     .body("Failed to delete account.");
         }
     }
-
-
 }

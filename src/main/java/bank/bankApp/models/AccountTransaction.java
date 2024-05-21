@@ -1,5 +1,6 @@
 package bank.bankApp.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.Date;
 
@@ -18,6 +19,7 @@ public class AccountTransaction {
     private String type;
     @ManyToOne
     @JoinColumn(name = "Account_ID")
+    @JsonIgnore
     private Account account;
 
     public Long getId() {

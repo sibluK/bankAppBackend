@@ -1,6 +1,7 @@
 package bank.bankApp.models;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class User {
     @Column(name = "LastName")
     private String lastName;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL , fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Account> accounts;
 
     public Long getId() {

@@ -1,5 +1,6 @@
 package bank.bankApp.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -19,8 +20,9 @@ public class Account {
     private Double balance;
     @ManyToOne
     @JoinColumn(name = "User_ID")
+    @JsonIgnore
     private User user;
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL , fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     private List<AccountTransaction> transactions;
 
     public Long getId() {

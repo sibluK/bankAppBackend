@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping(path = "/transactions")
 public class TransactionController {
 
     @Autowired
@@ -22,7 +23,18 @@ public class TransactionController {
     @Autowired
     private IAccountRepository accountRepository;
 
-    @GetMapping(path = "/transactions/{accountId}")
+
+    @GetMapping
+    public ResponseEntity<?> getTransactions() {
+        try {
+            return ResponseEntity.ok().body(transactionRepository.findAll());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to retrieve transactions");
+        }
+    }
+    @GetMapping(path = "/account/{accountId}")
     public ResponseEntity<?> getAccountTransactions(@PathVariable Long accountId) {
         try {
             return ResponseEntity.ok().body(transactionRepository.findAllByAccountId(accountId));
@@ -33,7 +45,20 @@ public class TransactionController {
         }
     }
 
-    @PostMapping(path = "/transactions/{accountId}")
+    @GetMapping(path = "/{transactionId}")
+    public ResponseEntity<?> getTransactionById(@PathVariable Long transactionId) {
+        try {
+            AccountTransaction transaction = transactionRepository.findById(transactionId)
+                    .orElseThrow(() -> new TransactionNotFoundException(transactionId));
+            return ResponseEntity.ok().body(transaction);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to retrieve transaction.");
+        }
+    }
+
+    @PostMapping(path = "/{accountId}")
     public ResponseEntity<?> addTransaction(@RequestBody AccountTransaction newTransaction, @PathVariable Long accountId) {
         try {
 
@@ -52,20 +77,7 @@ public class TransactionController {
         }
     }
 
-    @GetMapping(path = "/transactions/{id}")
-    public ResponseEntity<?> getTransactionById(@PathVariable Long id) {
-        try {
-            AccountTransaction transaction = transactionRepository.findById(id)
-                    .orElseThrow(() -> new TransactionNotFoundException(id));
-            return ResponseEntity.ok().body(transaction);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to retrieve transaction.");
-        }
-    }
-
-    @PutMapping(path = "/transactions/{id}")
+    @PutMapping(path = "/{id}")
     public ResponseEntity<?> replaceTransactionById(@RequestBody AccountTransaction newTransaction, @PathVariable Long id) {
         try {
             AccountTransaction transaction = transactionRepository.findById(id)
@@ -74,7 +86,6 @@ public class TransactionController {
             transaction.setType(newTransaction.getType());
             transaction.setAmount(newTransaction.getAmount());
             transaction.setDate(newTransaction.getDate());
-            transaction.setAccount(newTransaction.getAccount());
             transactionRepository.save(transaction);
             return ResponseEntity.ok().body("Transaction replaced!");
 
@@ -85,7 +96,7 @@ public class TransactionController {
         }
     }
 
-    @DeleteMapping(path = "/transactions/{id}")
+    @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> deleteTransactionById(@PathVariable Long id) {
         try {
             transactionRepository.deleteById(id);
