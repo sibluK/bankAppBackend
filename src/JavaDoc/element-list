@@ -1,0 +1,7 @@
+bank.bankApp
+bank.bankApp.config
+bank.bankApp.controllers
+bank.bankApp.database
+bank.bankApp.exceptions
+bank.bankApp.models
+bank.bankApp.repositories

@@ -7,6 +7,12 @@ import bank.bankApp.models.User;
 import bank.bankApp.repositories.IAccountRepository;
 import bank.bankApp.repositories.ITransactionRepository;
 import bank.bankApp.repositories.IUserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +20,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+/**
+ * Controller for managing users.
+ */
 @RestController
 @RequestMapping("/users")
+@Tag(name = "Controller for the user class")
 public class UserController {
 
     @Autowired
@@ -25,6 +36,22 @@ public class UserController {
     @Autowired
     private ITransactionRepository transactionRepository;
 
+    /**
+     * Retrieves all users.
+     *
+     * @return a list of all users.
+     */
+    @Operation(
+            summary = "Returns all users",
+            description = "")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found all users",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "500", description = "Failed to retrieve users",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+    })
     @GetMapping
     public ResponseEntity<?> getUsers() {
         try {
@@ -36,6 +63,23 @@ public class UserController {
         }
     }
 
+    /**
+     * Retrieves a user based on their ID.
+     *
+     * @param id the ID of the user.
+     * @return the user details.
+     */
+    @Operation(
+            summary = "Returns a user by their id",
+            description = "Retrieves a user based on the provided ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the user",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "500", description = "Failed to retrieve user",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+    })
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         try {
@@ -49,6 +93,23 @@ public class UserController {
         }
     }
 
+    /**
+     * Creates a new user with the provided details.
+     *
+     * @param newUser the details of the new user.
+     * @return a confirmation message.
+     */
+    @Operation(
+            summary = "Adds a new user",
+            description = "Creates a new user with the provided details.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User added successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "500", description = "Failed to add user",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+    })
     @PostMapping
     public ResponseEntity<?> addUser(@RequestBody User newUser) {
         try {
@@ -61,6 +122,24 @@ public class UserController {
         }
     }
 
+    /**
+     * Updates a user's information based on their ID.
+     *
+     * @param newUser the new user details.
+     * @param id      the ID of the user to update.
+     * @return a confirmation message.
+     */
+    @Operation(
+            summary = "Replaces a user by their id",
+            description = "Updates a user's information based on the provided ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User replaced successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "500", description = "Failed to replace user",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+    })
     @PutMapping(path = "/{id}")
     public ResponseEntity<?> replaceUserById(@RequestBody User newUser, @PathVariable Long id) {
         try {
@@ -74,7 +153,6 @@ public class UserController {
             user.setLastName(newUser.getLastName());
             userRepository.save(user);
             return ResponseEntity.ok().body("User replaced!");
-
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -82,6 +160,23 @@ public class UserController {
         }
     }
 
+    /**
+     * Deletes a user based on their ID, along with associated accounts and transactions.
+     *
+     * @param id the ID of the user to delete.
+     * @return a confirmation message.
+     */
+    @Operation(
+            summary = "Deletes a user by their id",
+            description = "Removes a user and their associated accounts and transactions based on the provided ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User deleted successfully",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+            @ApiResponse(responseCode = "500", description = "Failed to delete user",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = String.class))}),
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUserById(@PathVariable Long id) {
         try {
@@ -105,5 +200,4 @@ public class UserController {
                     .body("Failed to delete user.");
         }
     }
-
 }

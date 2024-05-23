@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"bank.bankApp"},{"l":"bank.bankApp.config"},{"l":"bank.bankApp.controllers"},{"l":"bank.bankApp.database"},{"l":"bank.bankApp.exceptions"},{"l":"bank.bankApp.models"},{"l":"bank.bankApp.repositories"}];updateSearchResults();
