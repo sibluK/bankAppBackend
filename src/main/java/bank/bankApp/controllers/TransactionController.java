@@ -1,9 +1,11 @@
 package bank.bankApp.controllers;
 
+import bank.bankApp.assemblers.TransactionModelAssembler;
 import bank.bankApp.exceptions.AccountNotFoundException;
 import bank.bankApp.exceptions.TransactionNotFoundException;
 import bank.bankApp.models.Account;
 import bank.bankApp.models.AccountTransaction;
+import bank.bankApp.models.TransactionModel;
 import bank.bankApp.repositories.IAccountRepository;
 import bank.bankApp.repositories.ITransactionRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,9 +15,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -28,9 +33,10 @@ public class TransactionController {
 
     @Autowired
     private ITransactionRepository transactionRepository;
-
     @Autowired
     private IAccountRepository accountRepository;
+    @Autowired
+    private TransactionModelAssembler transactionAssembler;
 
     /**
      * Retrieves all transactions.
@@ -49,7 +55,11 @@ public class TransactionController {
     @GetMapping
     public ResponseEntity<?> getTransactions() {
         try {
-            return ResponseEntity.ok().body(transactionRepository.findAll());
+            List<TransactionModel> transactionModels = transactionRepository.findAll().stream()
+                    .map(transactionAssembler::toModel)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok().body(CollectionModel.of(transactionModels));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -75,7 +85,11 @@ public class TransactionController {
     @GetMapping(path = "/account/{accountId}")
     public ResponseEntity<?> getAccountTransactions(@PathVariable Long accountId) {
         try {
-            return ResponseEntity.ok().body(transactionRepository.findAllByAccountId(accountId));
+            List<TransactionModel> transactionModels = transactionRepository.findAllByAccountId(accountId).stream()
+                    .map(transactionAssembler::toModel)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok().body(CollectionModel.of(transactionModels));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -103,7 +117,7 @@ public class TransactionController {
         try {
             AccountTransaction transaction = transactionRepository.findById(transactionId)
                     .orElseThrow(() -> new TransactionNotFoundException(transactionId));
-            return ResponseEntity.ok().body(transaction);
+            return ResponseEntity.ok().body(transactionAssembler.toModel(transaction));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -1,38 +1,29 @@
 package bank.bankApp.models;
 
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
 import org.springframework.hateoas.RepresentationModel;
 
 import java.util.List;
 
-@Entity
-@Table(name = "User")
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "User_ID")
+public class UserModel extends RepresentationModel<UserModel> {
     private Long id;
-
-    @Column(name = "Username")
     private String username;
-
-    @Column(name = "Password")
-    private String password;
-
-    @Column(name = "Email")
     private String email;
-
-    @Column(name = "FirstName")
     private String firstName;
-
-    @Column(name = "LastName")
     private String lastName;
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Account> accounts;
 
+    public UserModel() {
+
+    }
+
+    public UserModel(User user) {
+        this.id = user.getId();
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.accounts = user.getAccounts();
+    }
     public Long getId() {
         return id;
     }
@@ -47,14 +38,6 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getEmail() {

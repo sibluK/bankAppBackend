@@ -1,8 +1,10 @@
 package bank.bankApp.controllers;
 
+import bank.bankApp.assemblers.AccountModelAssembler;
 import bank.bankApp.exceptions.AccountNotFoundException;
 import bank.bankApp.exceptions.UserNotFoundException;
 import bank.bankApp.models.Account;
+import bank.bankApp.models.AccountModel;
 import bank.bankApp.models.User;
 import bank.bankApp.models.AccountTransaction;
 import bank.bankApp.repositories.IAccountRepository;
@@ -15,11 +17,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Controller for managing accounts.
@@ -35,6 +39,8 @@ public class AccountController {
     private IUserRepository userRepository;
     @Autowired
     private ITransactionRepository transactionRepository;
+    @Autowired
+    private AccountModelAssembler accountAssembler;
 
     /**
      * Retrieves a list of all accounts in the system.
@@ -55,7 +61,11 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<?> getAccounts() {
         try {
-            return ResponseEntity.ok().body(accountRepository.findAll());
+            List<AccountModel> accountModels = accountRepository.findAll().stream()
+                    .map(accountAssembler::toModel)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok().body(CollectionModel.of(accountModels));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -83,7 +93,11 @@ public class AccountController {
     @GetMapping(path = "/user/{userId}")
     public ResponseEntity<?> getUserAccounts(@PathVariable Long userId) {
         try {
-            return ResponseEntity.ok().body(accountRepository.findAllByUserId(userId));
+            List<AccountModel> accountModels = accountRepository.findAllByUserId(userId).stream()
+                    .map(accountAssembler::toModel)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok().body(CollectionModel.of(accountModels));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -113,7 +127,8 @@ public class AccountController {
         try {
             Account account = accountRepository.findById(accountId)
                     .orElseThrow(() -> new AccountNotFoundException(accountId));
-            return ResponseEntity.ok().body(account);
+
+            return ResponseEntity.ok().body(accountAssembler.toModel(account));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

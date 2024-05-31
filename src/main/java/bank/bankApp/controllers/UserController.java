@@ -1,9 +1,11 @@
 package bank.bankApp.controllers;
 
+import bank.bankApp.assemblers.UserModelAssembler;
 import bank.bankApp.exceptions.UserNotFoundException;
 import bank.bankApp.models.Account;
 import bank.bankApp.models.AccountTransaction;
 import bank.bankApp.models.User;
+import bank.bankApp.models.UserModel;
 import bank.bankApp.repositories.IAccountRepository;
 import bank.bankApp.repositories.ITransactionRepository;
 import bank.bankApp.repositories.IUserRepository;
@@ -14,11 +16,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -35,6 +42,8 @@ public class UserController {
     private IAccountRepository accountRepository;
     @Autowired
     private ITransactionRepository transactionRepository;
+    @Autowired
+    private UserModelAssembler userAssembler;
 
     /**
      * Retrieves all users.
@@ -55,7 +64,11 @@ public class UserController {
     @GetMapping
     public ResponseEntity<?> getUsers() {
         try {
-            return ResponseEntity.ok().body(userRepository.findAll());
+            List<User> users = userRepository.findAll();
+            List<UserModel> userModels = users.stream()
+                    .map(userAssembler::toModel)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok().body(CollectionModel.of(userModels, linkTo(methodOn(UserController.class).getUsers()).withSelfRel()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

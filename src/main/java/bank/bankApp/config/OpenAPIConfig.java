@@ -24,11 +24,11 @@ import io.swagger.v3.oas.annotations.servers.Server;
         servers = {
                 @Server(
                         description = "Local Dev",
-                        url = "localhost:7171"
+                        url = "http://localhost:7171"
                 ),
                 @Server(
                         description = "Local Test",
-                        url = "localhost:7272"
+                        url = "http://localhost:7272"
                 )
         }
 )
