@@ -10,7 +10,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 
 
-///TEST
 @Component
 public class AccountModelAssembler extends RepresentationModelAssemblerSupport<Account, AccountModel> {
 
